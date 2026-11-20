@@ -81,11 +81,18 @@ namespace RecolecEco
         }
 
         /// <summary>Casco con franjas de color (antiincrustante, blanco, color principal, franja, borda).</summary>
-        public static Mesh ChalanaHull(Color bottomCol, Color whiteCol, Color mainCol, Color stripeCol, Color rimCol, Color insideCol, float scale = 1f)
+        public static Mesh ChalanaHull(Color bottomCol, Color whiteCol, Color mainCol, Color stripeCol,
+            Color rimCol, Color insideCol, float scale = 1f, bool detailed = false)
         {
             var b = new Builder();
             float[] ks = { 0f, 0.12f, 0.25f, 0.36f, 0.42f, 0.70f, 0.80f, 0.92f, 1f };
             Color[] cols = { bottomCol, bottomCol, bottomCol, bottomCol, whiteCol, mainCol, stripeCol, mainCol, rimCol };
+            if (detailed)
+            {
+                ks = new[] { 0f, 0.12f, 0.25f, 0.36f, 0.42f, 0.59f, 0.62f, 0.70f, 0.755f, 0.79f, 0.92f, 0.965f, 1f };
+                cols = new[] { bottomCol, bottomCol, bottomCol, whiteCol, mainCol, mainCol * 0.79f,
+                    mainCol, stripeCol, mainCol * 0.82f, mainCol, rimCol * 0.78f, rimCol };
+            }
             var S = ChalanaSections;
             for (int side = -1; side <= 1; side += 2)
             {
@@ -113,7 +120,8 @@ namespace RecolecEco
             {
                 Vector3 l0 = Profile(s0, -1, ks[j]) * scale, l1 = Profile(s0, -1, ks[j + 1]) * scale;
                 Vector3 r0 = Profile(s0, 1, ks[j]) * scale, r1 = Profile(s0, 1, ks[j + 1]) * scale;
-                b.Quad(l0, l1, r1, r0, j < 4 ? bottomCol : (j == 6 ? stripeCol : mainCol));
+                Color transom = detailed ? cols[j] : j < 4 ? bottomCol : (j == 6 ? stripeCol : mainCol);
+                b.Quad(l0, l1, r1, r0, transom);
             }
             // Cubierta
             Color deck = new Color(0.72f, 0.52f, 0.32f);
@@ -122,7 +130,26 @@ namespace RecolecEco
                 float k = 0.42f;
                 Vector3 a = Profile(S[i], -1, k) * scale, bb = Profile(S[i + 1], -1, k) * scale;
                 Vector3 cc = Profile(S[i + 1], 1, k) * scale, d = Profile(S[i], 1, k) * scale;
-                b.Quad(a, bb, cc, d, i % 2 == 0 ? deck : deck * 0.93f + new Color(0, 0, 0, 0.07f));
+                if (!detailed)
+                {
+                    b.Quad(a, bb, cc, d, i % 2 == 0 ? deck : deck * 0.93f + new Color(0, 0, 0, 0.07f));
+                    continue;
+                }
+
+                const int planks = 11;
+                for (int plank = 0; plank < planks; plank++)
+                {
+                    float low = plank / (float)planks;
+                    float high = (plank + 1) / (float)planks;
+                    var oak = new Color(0.66f, 0.46f, 0.30f);
+                    var wood = oak * (0.86f + ((plank * 5 + i) % 7) * 0.035f);
+                    var seam = new Color(0.29f, 0.19f, 0.13f);
+                    float lip = Mathf.Lerp(low, high, 0.91f);
+                    b.Quad(Vector3.Lerp(a, d, low), Vector3.Lerp(bb, cc, low),
+                        Vector3.Lerp(bb, cc, lip), Vector3.Lerp(a, d, lip), wood);
+                    b.Quad(Vector3.Lerp(a, d, lip), Vector3.Lerp(bb, cc, lip),
+                        Vector3.Lerp(bb, cc, high), Vector3.Lerp(a, d, high), seam);
+                }
             }
             return b.ToMesh("ChalanaHull");
         }
