@@ -20,6 +20,7 @@ namespace RecolecEco
         float _orbitYaw, _orbitPitch;
         float _smoothYaw;
         float _lastOrbitInput = -10f;
+        float _defaultDistance;
         Vector3 _vel;
         Transform _cinePoint, _cineLook;
         float _cineAngle;
@@ -27,6 +28,7 @@ namespace RecolecEco
 
         void Start()
         {
+            _defaultDistance = distance;
             if (target != null)
             {
                 _smoothYaw = target.eulerAngles.y;
@@ -77,8 +79,20 @@ namespace RecolecEco
                 return;
             }
             bool canOrbit = gm == null || !gm.Paused;
+            var keyboard = Keyboard.current;
+            bool recenter = (gm == null || !gm.ControlsLocked)
+                && keyboard != null && keyboard.cKey.wasPressedThisFrame;
+            if (recenter)
+            {
+                _orbitYaw = 0f;
+                _orbitPitch = 0f;
+                distance = Mathf.Clamp(_defaultDistance, minDistance, maxDistance);
+                _smoothYaw = target.eulerAngles.y;
+                _vel = Vector3.zero;
+            }
+
             var mouse = Mouse.current;
-            if (canOrbit && mouse != null)
+            if (canOrbit && !recenter && mouse != null)
             {
                 if (mouse.rightButton.isPressed)
                 {
