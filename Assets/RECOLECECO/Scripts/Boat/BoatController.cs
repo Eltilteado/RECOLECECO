@@ -13,6 +13,7 @@ namespace RecolecEco
     {
         public Transform model;
 
+        bool _braking;
         Rigidbody _rb;
         GameConfig _cfg;
 
@@ -55,6 +56,7 @@ namespace RecolecEco
         void Update()
         {
             float th = 0, st = 0;
+            _braking = false;
             if (AutopilotActive)
             {
                 if (!IsDocked && !IsDocking && GameManager.I != null && !GameManager.I.Paused) { th = _apThrottle; st = _apSteer; }
@@ -64,13 +66,14 @@ namespace RecolecEco
                 var kb = Keyboard.current;
                 if (kb != null)
                 {
+                    _braking = kb.spaceKey.isPressed;
                     if (kb.wKey.isPressed || kb.upArrowKey.isPressed) th += 1;
                     if (kb.sKey.isPressed || kb.downArrowKey.isPressed) th -= 1;
                     if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) st += 1;
                     if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) st -= 1;
                 }
             }
-            Throttle = th;
+            Throttle = _braking ? 0f : th;
             Steer = st;
         }
 
@@ -83,7 +86,8 @@ namespace RecolecEco
 
             float target = Throttle > 0 ? Throttle * max : Throttle * max * _cfg.reverseFactor;
             float rate;
-            if (Mathf.Approximately(Throttle, 0)) rate = accel * 0.45f;              // el agua frena suavemente
+            if (_braking) rate = accel * 2.4f;
+            else if (Mathf.Approximately(Throttle, 0)) rate = accel * 0.45f;              // el agua frena suavemente
             else if (Mathf.Sign(target) != Mathf.Sign(CurrentSpeed) && Mathf.Abs(CurrentSpeed) > 0.05f) rate = accel * 1.6f; // frenar
             else rate = accel;
             CurrentSpeed = Mathf.MoveTowards(CurrentSpeed, target, rate * dt);

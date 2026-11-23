@@ -8,6 +8,7 @@ namespace RecolecEco
     {
         public Transform dockPoint;
         public float radius = 11f;
+        const float ManualDockSpeedLimit = 2f;
         public GameObject dockHighlight;
         [Tooltip("Vista de cámara mientras la chalana está atracada")]
         public Transform cameraPoint;
@@ -26,8 +27,14 @@ namespace RecolecEco
 
             if (BoatInRange && !GM.ControlsLocked)
             {
-                InteractionPrompt.Set(this, "E — Atracar en el muelle", 2);
-                if (InteractionPrompt.Owner == (object)this && InteractionPrompt.KeyFree && !boat.AutopilotActive && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame) DockNow();
+                bool slowEnough = Mathf.Abs(boat.CurrentSpeed) <= ManualDockSpeedLimit;
+                InteractionPrompt.Set(this, slowEnough ? "E — Atracar en el muelle" : "Espacio — Frena para atracar", 2);
+                var keyboard = Keyboard.current;
+                if (slowEnough && InteractionPrompt.Owner == (object)this && InteractionPrompt.KeyFree
+                    && !boat.AutopilotActive && keyboard != null && keyboard.eKey.wasPressedThisFrame)
+                {
+                    DockNow();
+                }
             }
             else InteractionPrompt.Clear(this);
         }
