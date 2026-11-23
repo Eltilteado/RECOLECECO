@@ -11,6 +11,7 @@ namespace RecolecEco
         public Transform cameraPivot;
         GameObject _controls;
         Image _fade;
+        Quaternion _restOrbit;
 
         void Awake()
         {
@@ -22,6 +23,7 @@ namespace RecolecEco
         void Start()
         {
             AudioManager.I.PlayMenuMusic();
+            FrameChalana();
             BuildUI();
 
             // Modo de prueba automatizada (solo con argumentos de línea de comandos).
@@ -38,7 +40,21 @@ namespace RecolecEco
         void Update()
         {
             Waves.PushToShader(Time.timeSinceLevelLoad);
-            if (cameraPivot) cameraPivot.Rotate(0, 4f * Time.deltaTime, 0, Space.World);
+            if (cameraPivot)
+                cameraPivot.localRotation = _restOrbit * Quaternion.Euler(0,
+                    Mathf.Sin(Time.timeSinceLevelLoad * 0.22f) * 13f, 0);
+        }
+
+        void FrameChalana()
+        {
+            if (!cameraPivot) return;
+            _restOrbit = cameraPivot.localRotation;
+            var cam = cameraPivot.GetComponentInChildren<Camera>();
+            if (!cam) return;
+            cam.transform.localPosition = new Vector3(-10.2f, 4.6f, -9.7f);
+            Vector3 focus = cameraPivot.position + Vector3.up * 1.25f;
+            Vector3 right = Vector3.Cross(Vector3.up, focus - cam.transform.position).normalized;
+            cam.transform.LookAt(focus - right * 5f);
         }
 
         void BuildUI()
@@ -46,39 +62,56 @@ namespace RecolecEco
             var canvas = UIFactory.CreateCanvas("Canvas_Menu", 10);
             var root = canvas.transform;
 
-            var title = UIFactory.Label(root, "RECOLEC(ECO)", 120, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold, true);
-            UIFactory.Place(title.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(110, -110), new Vector2(1200, 150));
-            var ol = title.gameObject.AddComponent<Outline>(); ol.effectColor = UIColors.Navy; ol.effectDistance = new Vector2(5, -5);
-            var sub = UIFactory.Label(root, "Mareas de Esperanza", 52, UIColors.Yellow, TextAnchor.MiddleLeft, FontStyle.Bold, true);
-            UIFactory.Place(sub.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(116, -250), new Vector2(1000, 70));
-            var pitch = UIFactory.Label(root, "Navega por una bahía peruana, recoge residuos, recíclalos y mejora tu chalana\nmientras ayudas a devolverle la vida al mar.", 26, Color.white, TextAnchor.UpperLeft, FontStyle.Normal, true);
-            UIFactory.Place(pitch.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(118, -330), new Vector2(1100, 90));
+            var wash = UIFactory.Panel(root, "Degradado costero",
+                new Color(0.035f, 0.09f, 0.12f, 0.98f), UIFactory.MenuGradient);
+            UIFactory.Stretch(wash.rectTransform);
+            wash.raycastTarget = false;
 
-            var panel = UIFactory.Panel(root, "Botones", new Color(0.055f, 0.165f, 0.28f, 0.85f));
+            var left = UIFactory.Rect(root, "Presentación");
+            UIFactory.Place(left, new Vector2(0, 0.5f), new Vector2(0, 0.5f),
+                new Vector2(100, 0), new Vector2(720, 860));
+
+            var top = new Vector2(0, 1);
+            var location = UIFactory.Label(left, "PUERTO DE PISCO  /  PERÚ", 22,
+                UIColors.Turquoise, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.Place(location.rectTransform, top, top, new Vector2(0, -40), new Vector2(600, 35));
+            UIFactory.Rule(left, "Línea de cubierta", UIColors.Yellow, top, top,
+                new Vector2(0, -95), new Vector2(78, 3));
+
+            var title = UIFactory.Label(left, "Mareas de\nEsperanza", 98, UIColors.Text,
+                TextAnchor.UpperLeft);
+            title.font = UIFactory.DisplayFont;
+            title.lineSpacing = 0.9f;
+            UIFactory.Place(title.rectTransform, top, top, new Vector2(-5, -116), new Vector2(730, 240));
+
+            var series = UIFactory.Label(left, "RECOLEC(ECO)", 25, UIColors.Yellow,
+                TextAnchor.MiddleLeft, FontStyle.Bold);
+            UIFactory.Place(series.rectTransform, top, top, new Vector2(0, -350), new Vector2(600, 38));
+
+            var pitch = UIFactory.Label(left,
+                "Recoge residuos del mar, llévalos a reciclar y mejora tu chalana.",
+                27, UIColors.TextDim, TextAnchor.UpperLeft);
+            UIFactory.Place(pitch.rectTransform, top, top, new Vector2(0, -413), new Vector2(505, 92));
+
             bool hasSave = SaveManager.Exists;
-            float h = hasSave ? 470 : 370;
-            UIFactory.Place(panel.rectTransform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(110, 110), new Vector2(460, h));
-            float y = -30;
+            var primary = UIFactory.Button(left, hasSave ? "Continuar partida" : "Zarpar",
+                UIColors.Yellow, UIColors.NavyDeep, hasSave
+                    ? (UnityEngine.Events.UnityAction)Continue : NewGame, 31);
+            UIFactory.Place((RectTransform)primary.transform, top, top,
+                new Vector2(0, -548), new Vector2(402, 76));
+
+            float y = -640;
             if (hasSave)
             {
-                var c = UIFactory.Button(panel.transform, "Continuar", UIColors.Turquoise, UIColors.NavyDeep, Continue, 34);
-                UIFactory.Place((RectTransform)c.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(380, 84));
-                y -= 100;
+                var play = UIFactory.Button(left, "Nueva partida", UIColors.PanelLight, UIColors.Text, NewGame, 27);
+                UIFactory.Place((RectTransform)play.transform, top, top, new Vector2(0, y), new Vector2(402, 64));
+                y -= 80;
             }
-            var play = UIFactory.Button(panel.transform, hasSave ? "Jugar (nueva partida)" : "Jugar", UIColors.Green, UIColors.NavyDeep, () =>
-            {
-                NewGame();
-            }, 34);
-            UIFactory.Place((RectTransform)play.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(380, 84));
-            y -= 100;
-            var ctr = UIFactory.Button(panel.transform, "Controles", UIColors.Teal, Color.white, () => _controls.SetActive(true), 34);
-            UIFactory.Place((RectTransform)ctr.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(380, 84));
-            y -= 100;
-            var quit = UIFactory.Button(panel.transform, "Salir", UIColors.Coral, Color.white, Quit, 34);
-            UIFactory.Place((RectTransform)quit.transform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, y), new Vector2(380, 84));
-
-            var credits = UIFactory.Label(root, "Proyecto final académico · Unity 6.3 LTS · ODS 12 · 13 · 14", 20, new Color(1, 1, 1, 0.8f), TextAnchor.LowerRight, FontStyle.Normal, true);
-            UIFactory.Place(credits.rectTransform, new Vector2(1, 0), new Vector2(1, 0), new Vector2(-30, 20), new Vector2(900, 30));
+            var controls = UIFactory.Button(left, "Controles", UIColors.PanelLight, UIColors.Text,
+                () => _controls.SetActive(true), 24);
+            UIFactory.Place((RectTransform)controls.transform, top, top, new Vector2(0, y), new Vector2(194, 58));
+            var exit = UIFactory.Button(left, "Salir", UIColors.PanelLight, UIColors.Text, Quit, 24);
+            UIFactory.Place((RectTransform)exit.transform, top, top, new Vector2(208, y), new Vector2(194, 58));
 
             var shade = UIFactory.Panel(root, "Controles", new Color(0, 0, 0, 0.55f));
             shade.sprite = null; shade.type = Image.Type.Simple;
