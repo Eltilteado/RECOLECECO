@@ -9,17 +9,18 @@ namespace RecolecEco
     /// <summary>Paleta de la interfaz: azul marino, verde y turquesa (§6).</summary>
     public static class UIColors
     {
-        public static readonly Color Navy = Hex("#0E2A47");
-        public static readonly Color NavyDeep = Hex("#0A1F36");
-        public static readonly Color Panel = new Color(0.055f, 0.165f, 0.28f, 0.92f);
-        public static readonly Color PanelLight = Hex("#163E63");
-        public static readonly Color Teal = Hex("#1FB5A8");
-        public static readonly Color Turquoise = Hex("#3FD0D4");
-        public static readonly Color Green = Hex("#5BC17F");
-        public static readonly Color Yellow = Hex("#F6C445");
-        public static readonly Color Coral = Hex("#EF6F5E");
-        public static readonly Color Text = Hex("#F4F7F5");
-        public static readonly Color TextDim = Hex("#A9C3D6");
+        public static readonly Color Navy = Hex("#102C3A");
+        public static readonly Color NavyDeep = Hex("#0B202A");
+        public static readonly Color Panel = new Color(0.047f, 0.121f, 0.151f, 0.96f);
+        public static readonly Color PanelLight = Hex("#1B3945");
+        public static readonly Color Teal = Hex("#236361");
+        public static readonly Color Turquoise = Hex("#89D8CD");
+        public static readonly Color Green = Hex("#95D5AC");
+        public static readonly Color Yellow = Hex("#EAC683");
+        public static readonly Color Coral = Hex("#AD564A");
+        public static readonly Color Alert = Hex("#F3A496");
+        public static readonly Color Text = Hex("#F5EFE3");
+        public static readonly Color TextDim = Hex("#B0C5C8");
         public static readonly Color Disabled = Hex("#4A5D70");
 
         public static Color Hex(string h) { ColorUtility.TryParseHtmlString(h, out var c); return c; }
@@ -28,20 +29,59 @@ namespace RecolecEco
     /// <summary>Construcción de interfaz por código (uGUI) con sprites generados.</summary>
     public static class UIFactory
     {
-        static Font _font;
+        static Font _font, _displayFont;
+        static Sprite _menuGradient;
         static Sprite _rounded, _roundedSmall, _circle, _triangle, _ring;
 
         public static Font Font
         {
             get
             {
-                if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                if (_font == null)
+                    _font = Resources.Load<Font>("Tipografia/NotoSansDisplay-Regular")
+                        ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 return _font;
             }
         }
 
-        public static Sprite Rounded => _rounded ? _rounded : (_rounded = MakeRounded(96, 26));
-        public static Sprite RoundedSmall => _roundedSmall ? _roundedSmall : (_roundedSmall = MakeRounded(48, 12));
+        public static Font DisplayFont => _displayFont
+            ? _displayFont
+            : (_displayFont = Resources.Load<Font>("Tipografia/NotoSerifDisplay-Regular") ?? Font);
+
+        public static Sprite MenuGradient
+        {
+            get
+            {
+                if (_menuGradient) return _menuGradient;
+                const int width = 128;
+                var tex = new Texture2D(width, 1, TextureFormat.RGBA32, false)
+                    { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                var pixels = new Color[width];
+                for (int i = 0; i < width; i++)
+                {
+                    float a = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((i / 127f - 0.13f) / 0.61f));
+                    pixels[i] = new Color(1, 1, 1, a);
+                }
+                tex.SetPixels(pixels);
+                tex.Apply(false, true);
+                _menuGradient = Sprite.Create(tex, new Rect(0, 0, width, 1), new Vector2(0.5f, 0.5f));
+                return _menuGradient;
+            }
+        }
+
+        public static Image Rule(Transform parent, string name, Color color, Vector2 anchor,
+            Vector2 pivot, Vector2 position, Vector2 size)
+        {
+            var line = Panel(parent, name, color);
+            line.sprite = null;
+            line.type = Image.Type.Simple;
+            line.raycastTarget = false;
+            Place(line.rectTransform, anchor, pivot, position, size);
+            return line;
+        }
+
+        public static Sprite Rounded => _rounded ? _rounded : (_rounded = MakeRounded(96, 15));
+        public static Sprite RoundedSmall => _roundedSmall ? _roundedSmall : (_roundedSmall = MakeRounded(48, 8));
         public static Sprite Circle => _circle ? _circle : (_circle = MakeCircle(128, false));
         public static Sprite Ring => _ring ? _ring : (_ring = MakeCircle(128, true));
         public static Sprite Triangle => _triangle ? _triangle : (_triangle = MakeTriangle(64));
@@ -184,11 +224,11 @@ namespace RecolecEco
             var btn = img.gameObject.AddComponent<Button>();
             var colors = btn.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.12f, 1.12f, 1.12f, 1f);
+            colors.highlightedColor = Color.white;
             colors.pressedColor = new Color(0.85f, 0.85f, 0.85f, 1f);
-            colors.selectedColor = Color.white;
+            colors.selectedColor = new Color(0.98f, 0.98f, 0.98f, 1f);
             colors.disabledColor = new Color(0.55f, 0.55f, 0.55f, 0.8f);
-            colors.colorMultiplier = 1.1f;
+            colors.colorMultiplier = 1.15f;
             btn.colors = colors;
             btn.targetGraphic = img;
             if (onClick != null)
@@ -207,7 +247,7 @@ namespace RecolecEco
             fillImg = Panel(bg.transform, "Fill", fill, RoundedSmall);
             var rt = fillImg.rectTransform;
             rt.anchorMin = Vector2.zero; rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.offsetMin = new Vector2(3, 3); rt.offsetMax = new Vector2(-3, -3);
+            rt.offsetMin = new Vector2(2, 2); rt.offsetMax = new Vector2(-2, -2);
             return bg;
         }
 
