@@ -28,12 +28,41 @@ namespace RecolecEco
         }
 
         readonly Dictionary<Sfx, AudioClip> _clips = new Dictionary<Sfx, AudioClip>();
-        AudioSource _music, _ambience, _motor;
+        AudioSource _music, _ambience, _dockAmbience, _motor;
+        float _dockBlend;
         readonly List<AudioSource> _sfxPool = new List<AudioSource>();
         float _gullTimer = 4f;
         float _motorTarget, _motorPitch = 0.8f;
         AudioClip _menuMusic, _gameMusic;
         public float MusicVolume = 0.32f;
+        const string MusicPref = "RECOLECECO.MusicLevel";
+        const string EffectsPref = "RECOLECECO.EffectsLevel";
+        public float MusicLevel { get; private set; } = 1f;
+        public float EffectsLevel { get; private set; } = 1f;
+
+        public void SetLevels(float music, float effects)
+        {
+            ApplyLevels(music, effects);
+            PlayerPrefs.SetFloat(MusicPref, MusicLevel);
+            PlayerPrefs.SetFloat(EffectsPref, EffectsLevel);
+            PlayerPrefs.Save();
+        }
+
+        void ApplyLevels(float music, float effects)
+        {
+            MusicLevel = Mathf.Clamp01(music);
+            EffectsLevel = Mathf.Clamp01(effects);
+            _music.volume = MusicVolume * MusicLevel;
+            UpdateAmbienceVolumes();
+            if (EffectsLevel == 0f) _motor.volume = 0f;
+            foreach (var source in _sfxPool) source.volume = EffectsLevel;
+        }
+
+        void UpdateAmbienceVolumes()
+        {
+            _ambience.volume = .32f * EffectsLevel * (1f - _dockBlend);
+            _dockAmbience.volume = .36f * EffectsLevel * _dockBlend;
+        }
 
         void Init()
         {
@@ -41,11 +70,17 @@ namespace RecolecEco
             _music.loop = true; _music.volume = MusicVolume; _music.playOnAwake = false;
             _ambience = gameObject.AddComponent<AudioSource>();
             _ambience.loop = true; _ambience.volume = 0.32f;
+            _dockAmbience = gameObject.AddComponent<AudioSource>();
+            _dockAmbience.loop = true;
+            _dockAmbience.playOnAwake = false;
+            _dockAmbience.clip = Resources.Load<AudioClip>("AudioCosta/AguaEnElMuelle");
             _motor = gameObject.AddComponent<AudioSource>();
             _motor.loop = true; _motor.volume = 0f;
             for (int i = 0; i < 8; i++) { var s = gameObject.AddComponent<AudioSource>(); s.playOnAwake = false; _sfxPool.Add(s); }
 
+            ApplyLevels(PlayerPrefs.GetFloat(MusicPref, 1f), PlayerPrefs.GetFloat(EffectsPref, 1f));
             _ambience.clip = Synth.Waves(); _ambience.Play();
+            if (_dockAmbience.clip) _dockAmbience.Play();
             _motor.clip = Synth.Motor(); _motor.Play();
             _clips[Sfx.Click] = Synth.Blip(880, 0.06f, 0.25f);
             _clips[Sfx.Collect] = Synth.Arp(new[] { 660f, 880f, 1320f }, 0.07f, 0.35f);
@@ -70,7 +105,7 @@ namespace RecolecEco
         void SwitchMusic(AudioClip c)
         {
             if (_music.clip == c && _music.isPlaying) return;
-            _music.clip = c; _music.volume = MusicVolume; _music.Play();
+            _music.clip = c; _music.volume = MusicVolume * MusicLevel; _music.Play();
         }
 
         public void PlaySfx(Sfx s, float volume = 1f, float pitch = 1f)
@@ -96,9 +131,14 @@ namespace RecolecEco
 
         void Update()
         {
-            bool inGame = GameManager.I != null && !GameManager.I.Paused;
+            var game = GameManager.I;
+            bool inGame = game != null && !game.Paused;
+            bool nearPier = _dockAmbience.clip && game && game.boat && game.dock
+                && (game.boat.IsDocked || Vector3.Distance(game.boat.transform.position, game.dock.transform.position) < 24f);
+            _dockBlend = Mathf.MoveTowards(_dockBlend, nearPier ? 1f : 0f, Time.unscaledDeltaTime * .65f);
+            UpdateAmbienceVolumes();
             if (!inGame) _motorTarget = 0f;
-            _motor.volume = Mathf.MoveTowards(_motor.volume, _motorTarget, Time.unscaledDeltaTime * 0.8f);
+            _motor.volume = Mathf.MoveTowards(_motor.volume, _motorTarget * EffectsLevel, Time.unscaledDeltaTime * 0.8f);
             _motor.pitch = Mathf.Lerp(_motor.pitch, _motorPitch, Time.unscaledDeltaTime * 3f);
             _motorTarget = Mathf.MoveTowards(_motorTarget, 0f, Time.unscaledDeltaTime * 0.5f);
 
