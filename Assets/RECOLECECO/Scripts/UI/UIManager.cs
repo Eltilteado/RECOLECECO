@@ -16,6 +16,7 @@ namespace RecolecEco
 
         GameManager GM => GameManager.I;
         Canvas _canvas;
+        FieldJournal _journal;
         Transform _root;
 
         // HUD
@@ -64,6 +65,7 @@ namespace RecolecEco
             _canvas.transform.SetParent(transform, false);
             _root = _canvas.transform;
             BuildHUD();
+            _journal = gameObject.AddComponent<FieldJournal>();
             BuildInventory();
             BuildDialogue();
             BuildPort();
@@ -171,7 +173,7 @@ namespace RecolecEco
             var help = UIFactory.Panel(hud, "Atajos de navegación", UIColors.Panel);
             help.raycastTarget = false;
             UIFactory.Place(help.rectTransform, Vector2.zero, Vector2.zero, new Vector2(32, 24), new Vector2(405, 44));
-            var keys = UIFactory.Label(help.transform, "<b>E</b> Interactuar     <b>I</b> Bodega     <b>Esc</b> Pausa",
+            var keys = UIFactory.Label(help.transform, "<b>E</b> Interactuar     <b>I</b> Bodega     <b>M</b> Bitácora",
                 21, UIColors.Text, TextAnchor.MiddleCenter);
             UIFactory.Stretch(keys.rectTransform);
 
@@ -926,6 +928,7 @@ namespace RecolecEco
         {
             var kb = Keyboard.current;
             if (kb == null) return;
+            if (_journal.HandleKeys(kb)) return;
 
             if (kb.escapeKey.wasPressedThisFrame)
             {
