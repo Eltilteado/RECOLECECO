@@ -22,9 +22,17 @@ namespace RecolecEco
         public CollectorArm arm;
 
         float _pitch, _roll, _lastSpeed, _heave;
+        Transform _upgradedPropeller;
+        Transform _activePropeller;
 
         void OnEnable() { GameEvents.StateChanged += RefreshUpgrades; }
         void OnDisable() { GameEvents.StateChanged -= RefreshUpgrades; }
+        void Awake()
+        {
+            _upgradedPropeller = motorBig != null ? motorBig.transform.Find("Helice") : null;
+            _activePropeller = propeller;
+        }
+
         void Start() { RefreshUpgrades(); }
 
         public void RefreshUpgrades()
@@ -34,6 +42,7 @@ namespace RecolecEco
             bool motor = gm.State.HasUpgrade(UpgradeType.Motor);
             if (motorSmall) motorSmall.SetActive(!motor);
             if (motorBig) motorBig.SetActive(motor);
+            _activePropeller = motor && _upgradedPropeller != null ? _upgradedPropeller : propeller;
             if (holdExtra) holdExtra.SetActive(gm.State.HasUpgrade(UpgradeType.Bodega));
             if (arm) arm.SetUpgraded(gm.State.HasUpgrade(UpgradeType.Herramienta));
         }
@@ -79,7 +88,7 @@ namespace RecolecEco
             }
             if (wakeTrails != null)
                 foreach (var tr in wakeTrails) if (tr) tr.emitting = Mathf.Abs(controller.CurrentSpeed) > 0.6f;
-            if (propeller) propeller.Rotate(0, 0, controller.CurrentSpeed * 360f * dt, Space.Self);
+            if (_activePropeller) _activePropeller.Rotate(0, 0, controller.CurrentSpeed * 360f * dt, Space.Self);
 
             AudioManager.I.SetMotor(s01, controller.Throttle != 0);
         }

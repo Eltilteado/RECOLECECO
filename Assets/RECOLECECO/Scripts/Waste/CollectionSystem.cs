@@ -13,6 +13,8 @@ namespace RecolecEco
         public CollectorArm arm;
         public Transform toolOrigin;
 
+        const float TargetSwitchMargin = 0.25f;
+
         public CollectibleWaste Target { get; private set; }
         public float LastFullWarningTime { get; private set; } = -100f;
         public int CollectedThisSession { get; private set; }
@@ -52,15 +54,25 @@ namespace RecolecEco
         CollectibleWaste FindTarget()
         {
             float reach = GM.Reach;
+            var current = Target;
+            float currentDistance = current != null && current.IsAvailable
+                ? DistanceToTool(current) : float.PositiveInfinity;
+            if (currentDistance > reach) current = null;
+
             CollectibleWaste best = null;
-            float bd = float.MaxValue;
-            foreach (var w in CollectibleWaste.All)
+            float closest = reach;
+            foreach (var waste in CollectibleWaste.All)
             {
-                if (!w.IsAvailable) continue;
-                float d = DistanceToTool(w);
-                if (d <= reach && d < bd) { bd = d; best = w; }
+                if (waste == null || !waste.IsAvailable) continue;
+                float distance = DistanceToTool(waste);
+                if (distance > closest || (best != null && distance >= closest)) continue;
+                closest = distance;
+                best = waste;
             }
-            return best;
+
+            // Evita que el resaltado salte entre residuos cuando las olas los mueven.
+            return current != null && currentDistance <= closest + TargetSwitchMargin
+                ? current : best;
         }
 
         /// <summary>Intenta recoger el residuo resaltado. Devuelve true si empezó la recogida.</summary>
