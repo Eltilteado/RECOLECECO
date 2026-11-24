@@ -21,6 +21,7 @@ namespace RecolecEco
         float _smoothYaw;
         float _lastOrbitInput = -10f;
         float _defaultDistance;
+        float _zoomTarget, _zoomVelocity;
         Vector3 _vel;
         Transform _cinePoint, _cineLook;
         float _cineAngle;
@@ -29,6 +30,7 @@ namespace RecolecEco
         void Start()
         {
             _defaultDistance = distance;
+            _zoomTarget = distance;
             if (target != null)
             {
                 _smoothYaw = target.eulerAngles.y;
@@ -86,7 +88,8 @@ namespace RecolecEco
             {
                 _orbitYaw = 0f;
                 _orbitPitch = 0f;
-                distance = Mathf.Clamp(_defaultDistance, minDistance, maxDistance);
+                _zoomTarget = Mathf.Clamp(_defaultDistance, minDistance, maxDistance);
+                _zoomVelocity = 0f;
                 _smoothYaw = target.eulerAngles.y;
                 _vel = Vector3.zero;
             }
@@ -103,8 +106,10 @@ namespace RecolecEco
                 }
                 float scroll = mouse.scroll.ReadValue().y;
                 if (Mathf.Abs(scroll) > 0.01f && (gm == null || gm.ModalCount == 0))
-                    distance = Mathf.Clamp(distance - Mathf.Sign(scroll) * 0.8f, minDistance, maxDistance);
+                    _zoomTarget = Mathf.Clamp(_zoomTarget - Mathf.Sign(scroll) * 0.8f, minDistance, maxDistance);
             }
+            distance = Mathf.SmoothDamp(distance, _zoomTarget, ref _zoomVelocity, 0.16f, Mathf.Infinity, dt);
+
             // Vuelve detrás del barco si no se usa el mouse.
             if (Time.unscaledTime - _lastOrbitInput > 1.5f)
             {
