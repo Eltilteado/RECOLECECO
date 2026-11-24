@@ -21,9 +21,9 @@ namespace RecolecEco.EditorTools
                 if (_skyMat == null) { _skyMat = new Material(Shader.Find("Skybox/Procedural")); AssetDatabase.CreateAsset(_skyMat, path); }
                 _skyMat.SetFloat("_SunSize", 0.05f);
                 _skyMat.SetFloat("_AtmosphereThickness", 0.8f);
-                _skyMat.SetColor("_SkyTint", Hex("#8CC8F0"));
-                _skyMat.SetColor("_GroundColor", Hex("#9FC6D4"));
-                _skyMat.SetFloat("_Exposure", 1.25f);
+                _skyMat.SetColor("_SkyTint", Hex("#9AB8D3"));
+                _skyMat.SetColor("_GroundColor", Hex("#BBC0CB"));
+                _skyMat.SetFloat("_Exposure", 1.1f);
                 EditorUtility.SetDirty(_skyMat);
             }
             RenderSettings.skybox = _skyMat;
