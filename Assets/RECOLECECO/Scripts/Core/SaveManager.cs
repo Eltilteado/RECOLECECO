@@ -7,7 +7,7 @@ namespace RecolecEco
 {
     /// <summary>Estado persistente de la partida (JSON local, §8).</summary>
     [Serializable]
-    public class SaveData
+    public partial class SaveData
     {
         public int version = 1;
         public int credits;
