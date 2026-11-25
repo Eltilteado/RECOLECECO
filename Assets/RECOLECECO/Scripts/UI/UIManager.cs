@@ -161,7 +161,7 @@ namespace RecolecEco
             UIFactory.Place(_speed.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -176), new Vector2(360, 22));
 
             // Ayuda de controles (abajo izquierda)
-            var help = UIFactory.Label(hud, "W/S avanzar · A/D girar · E interactuar · I inventario · Clic der. cámara · Esc pausa", 18, new Color(1, 1, 1, 0.75f), TextAnchor.LowerLeft, FontStyle.Normal, true);
+            var help = UIFactory.Label(hud, "W/S navegar · A/D girar · Espacio frenar · E interactuar · C centrar cámara · I bodega · Esc pausa", 18, new Color(1, 1, 1, 0.75f), TextAnchor.LowerLeft, FontStyle.Normal, true);
             UIFactory.Place(help.rectTransform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(24, 18), new Vector2(1100, 26));
 
             // Indicador de interacción (abajo centro)
@@ -733,12 +733,14 @@ namespace RecolecEco
             UIFactory.Place(p.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900, 720));
             var ol = p.gameObject.AddComponent<Outline>(); ol.effectColor = UIColors.Teal; ol.effectDistance = new Vector2(3, 3);
             var t = UIFactory.Label(p.transform, "Controles", 46, UIColors.Text, TextAnchor.UpperCenter, FontStyle.Bold);
-            UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -28), new Vector2(800, 60));
+            UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -22), new Vector2(800, 60));
             string[,] rows =
             {
-                { "W / S", "Avanzar / frenar y retroceder" },
-                { "A / D", "Girar la chalana" },
-                { "Mouse (clic der.)", "Orientar la cámara · rueda: zoom" },
+                { "W / S o ↑ / ↓", "Avanzar y retroceder" },
+                { "A / D o ← / →", "Girar la chalana" },
+                { "Espacio", "Frenar la chalana" },
+                { "Clic der. / rueda", "Girar la cámara / ajustar el zoom" },
+                { "C", "Volver a la vista y al zoom iniciales" },
                 { "E", "Recoger residuo / atracar / continuar diálogo" },
                 { "I", "Abrir o cerrar la bodega (inventario)" },
                 { "Esc", "Pausa" },
@@ -746,11 +748,11 @@ namespace RecolecEco
             for (int i = 0; i < rows.GetLength(0); i++)
             {
                 var key = UIFactory.Panel(p.transform, "Tecla", UIColors.Teal, UIFactory.RoundedSmall);
-                UIFactory.Place(key.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, -110 - i * 72), new Vector2(260, 56));
+                UIFactory.Place(key.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, -91 - i * 55), new Vector2(260, 46));
                 var kt = UIFactory.Label(key.transform, rows[i, 0], 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIFactory.Stretch(kt.rectTransform);
                 var dt = UIFactory.Label(p.transform, rows[i, 1], 26, UIColors.Text, TextAnchor.MiddleLeft);
-                UIFactory.Place(dt.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(345, -110 - i * 72), new Vector2(520, 56));
+                UIFactory.Place(dt.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(345, -91 - i * 55), new Vector2(520, 46));
             }
             var goal = UIFactory.Label(p.transform, "Objetivo: recoge residuos desde tu chalana, vuelve al muelle, recicla con Doña Rosa y mejora tu barco con Don Mateo. Sigue la flecha amarilla.", 22, UIColors.TextDim, TextAnchor.UpperCenter);
             UIFactory.Place(goal.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 120), new Vector2(800, 70));
