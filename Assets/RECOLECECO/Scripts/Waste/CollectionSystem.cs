@@ -16,6 +16,7 @@ namespace RecolecEco
         const float TargetSwitchMargin = 0.25f;
 
         public CollectibleWaste Target { get; private set; }
+        public bool IsCollecting => arm != null && arm.Busy;
         public float LastFullWarningTime { get; private set; } = -100f;
         public int CollectedThisSession { get; private set; }
 

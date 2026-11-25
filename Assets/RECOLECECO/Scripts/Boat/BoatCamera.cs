@@ -80,10 +80,9 @@ namespace RecolecEco
                 _smoothYaw = target.eulerAngles.y;
                 return;
             }
-            bool canOrbit = gm == null || !gm.Paused;
+            bool canControlCamera = gm == null || !gm.ControlsLocked;
             var keyboard = Keyboard.current;
-            bool recenter = (gm == null || !gm.ControlsLocked)
-                && keyboard != null && keyboard.cKey.wasPressedThisFrame;
+            bool recenter = canControlCamera && keyboard != null && keyboard.cKey.wasPressedThisFrame;
             if (recenter)
             {
                 _orbitYaw = 0f;
@@ -95,7 +94,7 @@ namespace RecolecEco
             }
 
             var mouse = Mouse.current;
-            if (canOrbit && !recenter && mouse != null)
+            if (canControlCamera && !recenter && mouse != null)
             {
                 if (mouse.rightButton.isPressed)
                 {
@@ -105,7 +104,7 @@ namespace RecolecEco
                     _lastOrbitInput = Time.unscaledTime;
                 }
                 float scroll = mouse.scroll.ReadValue().y;
-                if (Mathf.Abs(scroll) > 0.01f && (gm == null || gm.ModalCount == 0))
+                if (Mathf.Abs(scroll) > 0.01f)
                     _zoomTarget = Mathf.Clamp(_zoomTarget - Mathf.Sign(scroll) * 0.8f, minDistance, maxDistance);
             }
             distance = Mathf.SmoothDamp(distance, _zoomTarget, ref _zoomVelocity, 0.16f, Mathf.Infinity, dt);
