@@ -16,6 +16,7 @@ namespace RecolecEco
 
         GameManager GM => GameManager.I;
         Canvas _canvas;
+        FieldJournal _journal;
         Transform _root;
 
         // HUD
@@ -64,6 +65,7 @@ namespace RecolecEco
             _canvas.transform.SetParent(transform, false);
             _root = _canvas.transform;
             BuildHUD();
+            _journal = gameObject.AddComponent<FieldJournal>();
             BuildInventory();
             BuildDialogue();
             BuildPort();
@@ -122,47 +124,58 @@ namespace RecolecEco
             UIFactory.Stretch((RectTransform)_hudRoot.transform);
             var hud = _hudRoot.transform;
 
+            var topLeft = new Vector2(0, 1);
+            var topRight = new Vector2(1, 1);
+
             // Misión activa (arriba izquierda)
             var card = UIFactory.Panel(hud, "Mision", UIColors.Panel);
-            UIFactory.Place(card.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -24), new Vector2(620, 150));
+            UIFactory.Place(card.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(32, -32), new Vector2(502, 151));
+            UIFactory.Rule(card.transform, "Acento de misión", UIColors.Turquoise, topLeft,
+                topLeft, new Vector2(22, -18), new Vector2(34, 3));
             _missionHeader = UIFactory.Label(card.transform, "", 20, UIColors.Turquoise, TextAnchor.UpperLeft, FontStyle.Bold);
-            UIFactory.Place(_missionHeader.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -14), new Vector2(580, 26));
+            UIFactory.Place(_missionHeader.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(68, -10), new Vector2(410, 26));
             _missionTitle = UIFactory.Label(card.transform, "", 32, UIColors.Text, TextAnchor.UpperLeft, FontStyle.Bold);
-            UIFactory.Place(_missionTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -40), new Vector2(580, 40));
+            UIFactory.Place(_missionTitle.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -40), new Vector2(458, 40));
             _missionProgress = UIFactory.Label(card.transform, "", 22, UIColors.TextDim, TextAnchor.UpperLeft);
-            UIFactory.Place(_missionProgress.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -84), new Vector2(580, 30));
+            UIFactory.Place(_missionProgress.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -82), new Vector2(458, 36));
             var mb = UIFactory.Bar(card.transform, UIColors.NavyDeep, UIColors.Green, out _missionBar);
-            UIFactory.Place(mb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -120), new Vector2(576, 16));
+            UIFactory.Place(mb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(22, -127), new Vector2(458, 10));
 
             // Estado (arriba derecha)
             var stats = UIFactory.Panel(hud, "Estado", UIColors.Panel);
-            UIFactory.Place(stats.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -24), new Vector2(400, 200));
+            UIFactory.Place(stats.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-32, -32), new Vector2(386, 200));
+            UIFactory.Rule(stats.transform, "Acento de bodega", UIColors.Yellow, topRight,
+                topRight, new Vector2(-20, -20), new Vector2(34, 3));
             var coin = UIFactory.Icon(stats.transform, IconFactory.Coin, Color.white, 44);
             UIFactory.Place(coin.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -14), new Vector2(44, 44));
             _credits = UIFactory.Label(stats.transform, "", 30, UIColors.Yellow, TextAnchor.MiddleLeft, FontStyle.Bold);
-            UIFactory.Place(_credits.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(74, -14), new Vector2(310, 44));
+            UIFactory.Place(_credits.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(74, -14), new Vector2(264, 44));
 
             _hold = UIFactory.Label(stats.transform, "", 22, UIColors.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.Place(_hold.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -68), new Vector2(360, 28));
             var hb = UIFactory.Bar(stats.transform, UIColors.NavyDeep, UIColors.Turquoise, out _holdBar);
-            UIFactory.Place(hb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -98), new Vector2(360, 14));
+            UIFactory.Place(hb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -100), new Vector2(346, 10));
 
             _clean = UIFactory.Label(stats.transform, "", 22, UIColors.Text, TextAnchor.MiddleLeft, FontStyle.Bold);
             UIFactory.Place(_clean.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -122), new Vector2(360, 28));
             var cb = UIFactory.Bar(stats.transform, UIColors.NavyDeep, UIColors.Green, out _cleanBar);
-            UIFactory.Place(cb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -152), new Vector2(360, 14));
+            UIFactory.Place(cb.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -154), new Vector2(346, 10));
             for (int i = 1; i <= 3; i++)
             {
                 var tick = UIFactory.Panel(cb.transform, "Hito", new Color(1, 1, 1, 0.5f), UIFactory.RoundedSmall);
                 tick.type = Image.Type.Simple; tick.sprite = null;
-                UIFactory.Place(tick.rectTransform, new Vector2(i * 0.25f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(2, 18));
+                UIFactory.Place(tick.rectTransform, new Vector2(i * 0.25f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(2, 10));
             }
             _speed = UIFactory.Label(stats.transform, "", 18, UIColors.TextDim, TextAnchor.MiddleLeft);
             UIFactory.Place(_speed.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(20, -176), new Vector2(360, 22));
 
             // Ayuda de controles (abajo izquierda)
-            var help = UIFactory.Label(hud, "W/S navegar · A/D girar · Espacio frenar · E interactuar · C centrar cámara · I bodega · Esc pausa", 18, new Color(1, 1, 1, 0.75f), TextAnchor.LowerLeft, FontStyle.Normal, true);
-            UIFactory.Place(help.rectTransform, new Vector2(0, 0), new Vector2(0, 0), new Vector2(24, 18), new Vector2(1100, 26));
+            var help = UIFactory.Panel(hud, "Atajos de navegación", UIColors.Panel);
+            help.raycastTarget = false;
+            UIFactory.Place(help.rectTransform, Vector2.zero, Vector2.zero, new Vector2(32, 24), new Vector2(405, 44));
+            var keys = UIFactory.Label(help.transform, "<b>E</b> Interactuar     <b>I</b> Bodega     <b>M</b> Bitácora",
+                21, UIColors.Text, TextAnchor.MiddleCenter);
+            UIFactory.Stretch(keys.rectTransform);
 
             // Indicador de interacción (abajo centro)
             var pp = UIFactory.Panel(hud, "Prompt", new Color(0.04f, 0.12f, 0.2f, 0.88f));
@@ -179,8 +192,12 @@ namespace RecolecEco
             _marker.sizeDelta = new Vector2(80, 80);
             _markerArrow = UIFactory.Icon(_marker, UIFactory.Triangle, UIColors.Yellow, 44);
             var sh = _markerArrow.gameObject.AddComponent<Outline>(); sh.effectColor = new Color(0, 0, 0, 0.6f);
-            _markerText = UIFactory.Label(_marker, "", 18, Color.white, TextAnchor.UpperCenter, FontStyle.Bold, true);
-            UIFactory.Place(_markerText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 1f), new Vector2(0, -26), new Vector2(260, 50));
+            var markerPanel = UIFactory.Panel(_marker, "Distancia al objetivo", UIColors.Panel, UIFactory.RoundedSmall);
+            markerPanel.raycastTarget = false;
+            UIFactory.Place(markerPanel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 1f),
+                new Vector2(0, -28), new Vector2(232, 58));
+            _markerText = UIFactory.Label(markerPanel.transform, "", 18, UIColors.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UIFactory.Stretch(_markerText.rectTransform, 5, 3, 5, 3);
 
             // Avisos
             _toastRoot = UIFactory.Rect(_root, "Avisos");
@@ -213,7 +230,7 @@ namespace RecolecEco
             _credits.text = $"{GM.State.credits} EcoCréditos";
             int used = GM.Inventory.Used, cap = GM.Inventory.Capacity;
             _hold.text = $"Bodega: {used}/{cap}" + (used >= cap ? "  ¡LLENA!" : "");
-            _hold.color = used >= cap ? UIColors.Coral : UIColors.Text;
+            _hold.color = used >= cap ? UIColors.Alert : UIColors.Text;
             UIFactory.SetBar(_holdBar, used / (float)Mathf.Max(1, cap));
             _clean.text = $"Limpieza de la bahía: {GM.Environment.CleanPercent} %";
             UIFactory.SetBar(_cleanBar, GM.Environment.Cleanliness01);
@@ -249,7 +266,7 @@ namespace RecolecEco
             Vector2 p = new Vector2(sp.x, sp.y);
             if (behind) p = screen - p;
             Vector2 center = screen * 0.5f;
-            float margin = 90f / Mathf.Max(0.01f, scale);
+            float margin = 126f / Mathf.Max(0.01f, scale);
             bool onScreen = !behind && p.x > margin && p.x < screen.x - margin && p.y > margin && p.y < screen.y - margin;
             if (!onScreen)
             {
@@ -281,7 +298,7 @@ namespace RecolecEco
 
         IEnumerator ToastRoutine(string msg)
         {
-            var panel = UIFactory.Panel(_toastRoot, "Aviso", new Color(0.07f, 0.45f, 0.45f, 0.95f));
+            var panel = UIFactory.Panel(_toastRoot, "Aviso", UIColors.Teal);
             var rt = panel.rectTransform;
             UIFactory.Place(rt, new Vector2(0.5f, 1), new Vector2(0.5f, 1), Vector2.zero, new Vector2(660, 58));
             var t = UIFactory.Label(panel.transform, msg, 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -410,7 +427,11 @@ namespace RecolecEco
             var p = UIFactory.Panel(_root, "Puerto", UIColors.Panel);
             UIFactory.Place(p.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(760, 600));
             _port = p.gameObject;
+            UIFactory.Rule(p.transform, "Línea del puerto", UIColors.Yellow, new Vector2(0.5f, 1),
+                new Vector2(0.5f, 1), new Vector2(0, -153), new Vector2(68, 3));
             var t = UIFactory.Label(p.transform, "Muelle de Pisco", 46, UIColors.Text, TextAnchor.UpperCenter, FontStyle.Bold);
+            t.font = UIFactory.DisplayFont;
+            t.fontStyle = FontStyle.Normal;
             UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -26), new Vector2(700, 60));
             _portInfo = UIFactory.Label(p.transform, "", 24, UIColors.TextDim, TextAnchor.UpperCenter);
             UIFactory.Place(_portInfo.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -92), new Vector2(680, 70));
@@ -488,15 +509,24 @@ namespace RecolecEco
             {
                 var info = cfg.GetBin((BinType)i);
                 int idx = i;
-                var b = UIFactory.Button(p.transform, "", info.color, info.textColor, () => SortInto((BinType)idx), 26);
+                var b = UIFactory.Button(p.transform, "", UIColors.PanelLight, UIColors.Text, () => SortInto((BinType)idx), 26);
                 var rt = (RectTransform)b.transform;
                 UIFactory.Place(rt, new Vector2(0, 0), new Vector2(0, 0), new Vector2(40 + i * 266, 130), new Vector2(250, 250));
                 var lbl = b.GetComponentInChildren<Text>();
-                lbl.text = $"<size=22>[{i + 1}]</size>\n{info.displayName}\n<size=20>{info.subtitle}</size>";
-                lbl.alignment = TextAnchor.MiddleCenter;
-                var lid = UIFactory.Panel(b.transform, "Tapa", Color.Lerp(info.color, Color.black, 0.25f), UIFactory.RoundedSmall);
-                UIFactory.Place(lid.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(270, 26));
+                lbl.text = $"{info.displayName}\n<size=19>{info.subtitle}</size>";
+                lbl.alignment = TextAnchor.UpperCenter;
+                UIFactory.Stretch(lbl.rectTransform, 14, 12, 14, 122);
+                var lid = UIFactory.Panel(b.transform, "Color del contenedor", info.color, UIFactory.RoundedSmall);
+                UIFactory.Place(lid.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                    new Vector2(0, -18), new Vector2(200, 8));
                 lid.raycastTarget = false;
+                var key = UIFactory.Panel(b.transform, "Tecla", info.color, UIFactory.Circle);
+                UIFactory.Place(key.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                    new Vector2(0, -46), new Vector2(54, 54));
+                key.raycastTarget = false;
+                var digit = UIFactory.Label(key.transform, (i + 1).ToString(), 25, info.textColor,
+                    TextAnchor.MiddleCenter, FontStyle.Bold);
+                UIFactory.Stretch(digit.rectTransform);
                 var ol = b.gameObject.AddComponent<Outline>(); ol.effectColor = new Color(0, 0, 0, 0.4f); ol.effectDistance = new Vector2(3, -3);
                 _binButtons[i] = b;
             }
@@ -626,6 +656,8 @@ namespace RecolecEco
                 int idx = i;
                 var card = UIFactory.Panel(p.transform, "Mejora", UIColors.PanelLight);
                 UIFactory.Place(card.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(36 + i * 448, -140), new Vector2(424, 450));
+                UIFactory.Rule(card.transform, "Acento", UIColors.Yellow, new Vector2(0.5f, 1),
+                    new Vector2(0.5f, 1), new Vector2(0, -12), new Vector2(56, 3));
                 var ic = UIFactory.Icon(card.transform, IconFactory.Upgrade((UpgradeType)i), Color.white, 110);
                 UIFactory.Place(ic.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -20), new Vector2(110, 110));
                 var name = UIFactory.Label(card.transform, u.displayName, 32, UIColors.Text, TextAnchor.UpperCenter, FontStyle.Bold);
@@ -673,7 +705,7 @@ namespace RecolecEco
                 bool owned = GM.Upgrades.IsOwned(t);
                 int cost = GM.Upgrades.Cost(t);
                 _wsStatus[i].text = owned ? "INSTALADA" : $"Costo: {cost} EC";
-                _wsStatus[i].color = owned ? UIColors.Green : (GM.Upgrades.CanAfford(t) ? UIColors.Yellow : UIColors.Coral);
+                _wsStatus[i].color = owned ? UIColors.Green : (GM.Upgrades.CanAfford(t) ? UIColors.Yellow : UIColors.Alert);
                 _wsBuy[i].interactable = !owned && GM.Upgrades.CanAfford(t);
                 _wsBuy[i].GetComponentInChildren<Text>().text = owned ? "Comprada" : (GM.Upgrades.CanAfford(t) ? "Comprar" : $"Faltan {cost - GM.State.credits} EC");
             }
@@ -828,12 +860,17 @@ namespace RecolecEco
             var p = UIFactory.Panel(shade.transform, "Caja", UIColors.Navy);
             UIFactory.Place(p.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1100, 860));
             var ol = p.gameObject.AddComponent<Outline>(); ol.effectColor = UIColors.Yellow; ol.effectDistance = new Vector2(4, 4);
-            var t = UIFactory.Label(p.transform, "¡Guardianes de la bahía!", 56, UIColors.Yellow, TextAnchor.UpperCenter, FontStyle.Bold, true);
+            var t = UIFactory.Label(p.transform, "Guardianes de la bahía", 56, UIColors.Yellow, TextAnchor.UpperCenter);
+            t.font = UIFactory.DisplayFont;
             UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -30), new Vector2(1000, 70));
             var sub = UIFactory.Label(p.transform, "La bahía de Pisco vuelve a tener vida. ODS 12 · ODS 13 · ODS 14", 26, UIColors.Turquoise, TextAnchor.UpperCenter);
             UIFactory.Place(sub.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -108), new Vector2(1000, 36));
-            _victoryStats = UIFactory.Label(p.transform, "", 27, UIColors.Text, TextAnchor.UpperLeft);
-            UIFactory.Place(_victoryStats.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -170), new Vector2(960, 520));
+            var report = UIFactory.Panel(p.transform, "Resumen de la bahía", UIColors.PanelLight);
+            UIFactory.Place(report.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1),
+                new Vector2(0, -165), new Vector2(968, 510));
+            _victoryStats = UIFactory.Label(report.transform, "", 28, UIColors.Text, TextAnchor.UpperLeft);
+            _victoryStats.lineSpacing = 1.12f;
+            UIFactory.Stretch(_victoryStats.rectTransform, 35, 22, 35, 26);
             var keep = UIFactory.Button(p.transform, "Seguir navegando", UIColors.Green, UIColors.NavyDeep, () =>
             {
                 _victory.SetActive(false); GM.PopModal(); GM.ContinueSailingAfterVictory();
@@ -893,6 +930,7 @@ namespace RecolecEco
         {
             var kb = Keyboard.current;
             if (kb == null) return;
+            if (_journal.HandleKeys(kb)) return;
 
             if (kb.escapeKey.wasPressedThisFrame)
             {
