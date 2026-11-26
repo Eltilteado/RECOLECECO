@@ -4,14 +4,14 @@ Shader "RECOLECECO/Water"
 {
     Properties
     {
-        _ShallowColor ("Color claro", Color) = (0.20, 0.78, 0.78, 1)
-        _DeepColor ("Color profundo", Color) = (0.05, 0.42, 0.58, 1)
-        _SkyColor ("Reflejo cielo", Color) = (0.75, 0.90, 0.98, 1)
+        _ShallowColor ("Color claro", Color) = (0.16, 0.65, 0.65, 1)
+        _DeepColor ("Color profundo", Color) = (0.055, 0.34, 0.45, 1)
+        _SkyColor ("Reflejo cielo", Color) = (0.58, 0.72, 0.79, 1)
         _DirtyColor ("Agua sucia", Color) = (0.30, 0.33, 0.20, 1)
         _OilColor ("Mancha", Color) = (0.10, 0.10, 0.08, 1)
         _FoamColor ("Espuma", Color) = (1, 1, 1, 1)
-        _Gloss ("Brillo", Range(8, 512)) = 160
-        _SpecStrength ("Especular", Range(0, 3)) = 1.2
+        _Gloss ("Brillo", Range(8, 512)) = 110
+        _SpecStrength ("Especular", Range(0, 3)) = 0.85
     }
     SubShader
     {
@@ -145,18 +145,21 @@ Shader "RECOLECECO/Water"
                 float2 p = i.positionWS.xz;
                 float t = _RecTime;
 
-                // Normal de detalle animada (ondas pequeñas)
-                float n1 = Noise(p * 0.35 + float2(t * 0.30, t * 0.18));
-                float n2 = Noise(p * 0.55 - float2(t * 0.22, -t * 0.27));
-                float3 n = normalize(i.normalWS + float3(n1 - 0.5, 0, n2 - 0.5) * 0.35);
+                // Ondulaciones cruzadas, con menos detalle en la distancia.
+                float2 uv = float2(dot(p, float2(0.82, 0.57)), dot(p, float2(-0.43, 0.90)));
+                float distanceToCamera = distance(i.positionWS, GetCameraPositionWS());
+                float detail = 1.0 - smoothstep(28.0, 135.0, distanceToCamera);
+                float rippleA = sin(uv.x * 4.4 + uv.y * 0.78 + t * 1.95 + Noise(p * 0.31) * 3.2);
+                float rippleB = sin(uv.y * 6.6 - uv.x * 0.68 - t * 2.45);
+                float3 n = normalize(i.normalWS + float3(rippleA, 0.0, rippleB) * (0.058 * detail));
 
                 float3 V = normalize(GetCameraPositionWS() - i.positionWS);
-                float fres = pow(1.0 - saturate(dot(n, V)), 4.0);
-
+                float fres = pow(1.0 - saturate(dot(n, V)), 4.3);
                 float ampSum = max(0.001, _RecWave0.z + _RecWave1.z + _RecWave2.z);
                 float crest = saturate(i.waveH / ampSum * 0.5 + 0.5);
-
-                float3 baseCol = lerp(_DeepColor.rgb, _ShallowColor.rgb, saturate(crest * 0.7 + n1 * 0.3));
+                float bands = Noise(float2(uv.x * 0.21, uv.y * 0.47) + t * 0.11);
+                float3 baseCol = lerp(_DeepColor.rgb, _ShallowColor.rgb,
+                    saturate(crest * 0.52 + bands * 0.44));
 
                 // Suciedad por sector (indicador del juego)
                 float dirt = max(SectorDirt(_RecSector0, p), max(SectorDirt(_RecSector1, p), SectorDirt(_RecSector2, p)));
@@ -172,17 +175,24 @@ Shader "RECOLECECO/Water"
                 float atten = L.shadowAttenuation;
                 float ndl = saturate(dot(n, L.direction));
 
-                float3 col = baseCol * (0.55 + 0.45 * ndl * lerp(0.6, 1.0, atten)) * L.color;
-                col = lerp(col, _SkyColor.rgb, fres * 0.55 * (1.0 - dirt * 0.6));
+                float3 col = baseCol * lerp(0.64, 1.04, ndl * lerp(0.58, 1.0, atten));
+                float skyAmount = fres * 0.67 * (1.0 - dirt * 0.56);
+                col = lerp(col, _SkyColor.rgb, skyAmount);
 
                 float3 H = normalize(L.direction + V);
-                float spec = pow(saturate(dot(n, H)), _Gloss) * _SpecStrength * atten * (1.0 - oil) * (1.0 - dirt * 0.5);
+                float highlight = saturate(dot(n, H));
+                float gloss = pow(highlight, _Gloss);
+                float gleam = pow(highlight, 22.0) * 0.095;
+                float spec = (gloss + gleam) * _SpecStrength * atten
+                    * (1.0 - oil) * (1.0 - dirt * 0.5);
                 col += spec * L.color;
 
-                // Espuma en crestas
-                float foamN = Noise(p * 0.8 + float2(t * 0.5, t * 0.3));
-                float foam = smoothstep(0.86, 0.98, crest + (foamN - 0.5) * 0.3) * (1.0 - dirt * 0.5);
-                col = lerp(col, _FoamColor.rgb, foam * 0.45);
+                // Espuma quebrada en las crestas, manteniendo legibles los residuos.
+                float broken = Noise(float2(uv.x * 1.8, uv.y * 0.8) + float2(t * 0.18, -t * 0.16));
+                float foam = smoothstep(0.88, 0.965, crest + broken * 0.16)
+                    * smoothstep(0.40, 0.73, broken) * (0.4 + 0.6 * detail)
+                    * (1.0 - dirt * 0.5);
+                col = lerp(col, _FoamColor.rgb, foam * 0.43);
 
                 col = MixFog(col, i.fogFactor);
                 return half4(col, 1.0);

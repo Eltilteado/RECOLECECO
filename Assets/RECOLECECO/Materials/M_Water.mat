@@ -25,14 +25,14 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Gloss: 160
-    - _SpecStrength: 1.2
+    - _Gloss: 110
+    - _SpecStrength: 0.85
     m_Colors:
-    - _DeepColor: {r: 0.049999982, g: 0.41999996, b: 0.58, a: 1}
+    - _DeepColor: {r: 0.055, g: 0.34, b: 0.45, a: 1}
     - _DirtyColor: {r: 0.29999998, g: 0.32999998, b: 0.19999996, a: 1}
     - _FoamColor: {r: 1, g: 1, b: 1, a: 1}
     - _OilColor: {r: 0.09999997, g: 0.09999997, b: 0.079999976, a: 1}
-    - _ShallowColor: {r: 0.19999996, g: 0.78, b: 0.78, a: 1}
-    - _SkyColor: {r: 0.75, g: 0.9, b: 0.97999996, a: 1}
+    - _ShallowColor: {r: 0.16, g: 0.65, b: 0.65, a: 1}
+    - _SkyColor: {r: 0.58, g: 0.72, b: 0.79, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
