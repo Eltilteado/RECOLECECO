@@ -23,7 +23,8 @@ namespace RecolecEco
             float h = Waves.Height(p.x, p.z);
             float hx = Waves.Height(p.x + sampleSize, p.z) - Waves.Height(p.x - sampleSize, p.z);
             float hz = Waves.Height(p.x, p.z + sampleSize) - Waves.Height(p.x, p.z - sampleSize);
-            transform.position = new Vector3(p.x, h + offset, p.z);
+            float smoothY = Mathf.Lerp(p.y, h + offset, 1f - Mathf.Exp(-8f * Time.deltaTime));
+            transform.position = new Vector3(p.x, smoothY, p.z);
             float k = tilt / 0.3f;
             transform.rotation = Quaternion.Euler(Mathf.Clamp(-hz * k, -tilt, tilt), _baseYaw + Mathf.Sin(Time.time * 0.2f + _seed) * 4f, Mathf.Clamp(hx * k, -tilt, tilt));
         }
