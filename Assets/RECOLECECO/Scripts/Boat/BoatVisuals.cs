@@ -75,19 +75,21 @@ namespace RecolecEco
             model.localPosition = new Vector3(0, _heave, 0);
             model.localRotation = Quaternion.Euler(_pitch, 0, _roll);
 
+            bool navigating = !controller.IsDocking && !controller.IsDocked;
             float s01 = controller.Speed01;
             if (wakeFoam)
             {
                 var em = wakeFoam.emission;
-                em.rateOverTime = Mathf.Lerp(0, 45, s01);
+                em.rateOverTime = navigating ? Mathf.Lerp(0, 45, s01) : 0f;
             }
             if (bowSpray)
             {
                 var em = bowSpray.emission;
-                em.rateOverTime = Mathf.Lerp(0, 30, Mathf.Clamp01((Mathf.Abs(controller.CurrentSpeed) - 2.5f) / 5f));
+                float forwardSpray = Mathf.Clamp01((controller.CurrentSpeed - 2.5f) / 5f);
+                em.rateOverTime = navigating ? 30f * forwardSpray : 0f;
             }
             if (wakeTrails != null)
-                foreach (var tr in wakeTrails) if (tr) tr.emitting = Mathf.Abs(controller.CurrentSpeed) > 0.6f;
+                foreach (var tr in wakeTrails) if (tr) tr.emitting = navigating && Mathf.Abs(controller.CurrentSpeed) > 0.6f;
             if (_activePropeller) _activePropeller.Rotate(0, 0, controller.CurrentSpeed * 360f * dt, Space.Self);
 
             AudioManager.I.SetMotor(s01, controller.Throttle != 0);
