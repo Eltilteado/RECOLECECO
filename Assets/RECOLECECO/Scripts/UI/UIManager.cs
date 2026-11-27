@@ -64,6 +64,7 @@ namespace RecolecEco
             _canvas = UIFactory.CreateCanvas("Canvas_Juego", 10);
             _canvas.transform.SetParent(transform, false);
             _root = _canvas.transform;
+            gameObject.AddComponent<PhotoCapture>().SetHud(_canvas);
             BuildHUD();
             _journal = gameObject.AddComponent<FieldJournal>();
             BuildInventory();
@@ -172,8 +173,8 @@ namespace RecolecEco
             // Ayuda de controles (abajo izquierda)
             var help = UIFactory.Panel(hud, "Atajos de navegación", UIColors.Panel);
             help.raycastTarget = false;
-            UIFactory.Place(help.rectTransform, Vector2.zero, Vector2.zero, new Vector2(32, 24), new Vector2(405, 44));
-            var keys = UIFactory.Label(help.transform, "<b>E</b> Interactuar     <b>I</b> Bodega     <b>M</b> Bitácora",
+            UIFactory.Place(help.rectTransform, Vector2.zero, Vector2.zero, new Vector2(32, 24), new Vector2(505, 44));
+            var keys = UIFactory.Label(help.transform, "<b>E</b> Interactuar     <b>I</b> Bodega     <b>M</b> Bitácora     <b>F8</b> Foto",
                 21, UIColors.Text, TextAnchor.MiddleCenter);
             UIFactory.Stretch(keys.rectTransform);
 
