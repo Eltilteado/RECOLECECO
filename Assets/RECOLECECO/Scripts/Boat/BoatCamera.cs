@@ -52,7 +52,9 @@ namespace RecolecEco
             float yaw = _smoothYaw + _orbitYaw;
             float pitch = Mathf.Atan2(height - lookHeight, distance) * Mathf.Rad2Deg + _orbitPitch;
             Quaternion q = Quaternion.Euler(pitch, yaw, 0);
-            return pivot - q * Vector3.forward * distance;
+            Vector3 position = pivot - q * Vector3.forward * distance;
+            position.y = Mathf.Max(position.y, 0.9f);
+            return position;
         }
 
         void LateUpdate()
@@ -99,7 +101,7 @@ namespace RecolecEco
                 if (mouse.rightButton.isPressed)
                 {
                     Vector2 d = mouse.delta.ReadValue();
-                    _orbitYaw += d.x * 0.18f;
+                    _orbitYaw = Mathf.DeltaAngle(0f, _orbitYaw + d.x * 0.18f);
                     _orbitPitch = Mathf.Clamp(_orbitPitch - d.y * 0.12f, -12f, 35f);
                     _lastOrbitInput = Time.unscaledTime;
                 }
@@ -109,8 +111,8 @@ namespace RecolecEco
             }
             distance = Mathf.SmoothDamp(distance, _zoomTarget, ref _zoomVelocity, 0.16f, Mathf.Infinity, dt);
 
-            // Vuelve detrás del barco si no se usa el mouse.
-            if (Time.unscaledTime - _lastOrbitInput > 1.5f)
+            // Mantiene el encuadre manual mientras haya un panel abierto.
+            if (canControlCamera && Time.unscaledTime - _lastOrbitInput > 1.5f)
             {
                 _orbitYaw = Mathf.LerpAngle(_orbitYaw, 0, dt * 1.5f);
                 _orbitPitch = Mathf.Lerp(_orbitPitch, 0, dt * 1.5f);
@@ -130,13 +132,17 @@ namespace RecolecEco
                 if (h.collider.attachedRigidbody != null && h.collider.attachedRigidbody.transform == target) continue;
                 if (h.distance > 0.01f) allowed = Mathf.Min(allowed, h.distance);
             }
-            Vector3 finalPos = pivot + dir.normalized * Mathf.Max(1.5f, allowed - 0.2f);
-            finalPos.y = Mathf.Max(finalPos.y, 0.9f);
-
             bool pulledIn = allowed < len - 0.01f;
-            transform.position = pulledIn
-                ? Vector3.Lerp(transform.position, finalPos, dt * 12f)
-                : Vector3.SmoothDamp(transform.position, finalPos, ref _vel, followSmooth, Mathf.Infinity, dt);
+            if (pulledIn)
+            {
+                // Primero saca la cámara del obstáculo. Al despejarse, recupera la distancia con suavidad.
+                transform.position = pivot + dir.normalized * Mathf.Max(0f, allowed - 0.2f);
+                _vel = Vector3.zero;
+            }
+            else
+            {
+                transform.position = Vector3.SmoothDamp(transform.position, desired, ref _vel, followSmooth, Mathf.Infinity, dt);
+            }
             transform.rotation = Quaternion.LookRotation(pivot + target.forward * 2f - transform.position);
         }
     }
