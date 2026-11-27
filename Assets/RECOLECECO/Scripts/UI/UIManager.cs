@@ -179,7 +179,7 @@ namespace RecolecEco
 
             // Indicador de interacción (abajo centro)
             var pp = UIFactory.Panel(hud, "Prompt", new Color(0.04f, 0.12f, 0.2f, 0.88f));
-            UIFactory.Place(pp.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(560, 70));
+            UIFactory.Place(pp.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(680, 70));
             _prompt = UIFactory.Label(pp.transform, "", 30, UIColors.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIFactory.Stretch(_prompt.rectTransform, 10, 0, 10, 0);
             var outline = pp.gameObject.AddComponent<Outline>();
