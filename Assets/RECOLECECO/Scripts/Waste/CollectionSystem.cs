@@ -16,6 +16,7 @@ namespace RecolecEco
         const float TargetSwitchMargin = 0.25f;
 
         public CollectibleWaste Target { get; private set; }
+        public bool IsCollecting => arm != null && arm.Busy;
         public float LastFullWarningTime { get; private set; } = -100f;
         public int CollectedThisSession { get; private set; }
 
@@ -36,7 +37,12 @@ namespace RecolecEco
             if (Target != null && !arm.Busy)
             {
                 if (GM.Inventory.IsFull) InteractionPrompt.Set(this, "Bodega llena, vuelve al puerto", 1);
-                else InteractionPrompt.Set(this, "E — Recoger " + GM.Config.GetWaste(Target.Type).displayName.ToLower(), 1);
+                else
+                {
+                    string item = GM.Config.GetWaste(Target.Type).displayName.ToLower();
+                    float distance = DistanceToTool(Target);
+                    InteractionPrompt.Set(this, $"E — Recoger {item} · {distance:0.0} m", 1);
+                }
             }
             else InteractionPrompt.Clear(this);
 

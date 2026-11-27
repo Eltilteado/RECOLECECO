@@ -13,6 +13,8 @@ namespace RecolecEco
     {
         public Transform model;
 
+        const float ManeuverSpeedLimit = 1.5f;
+
         bool _braking;
         Rigidbody _rb;
         GameConfig _cfg;
@@ -20,6 +22,7 @@ namespace RecolecEco
         public float CurrentSpeed { get; private set; }
         public float Throttle { get; private set; }
         public float Steer { get; private set; }
+        public bool Maneuvering { get; private set; }
         public bool IsDocked { get; private set; }
         public bool IsDocking { get; private set; }
         public float LastBumpTime { get; private set; } = -10f;
@@ -57,6 +60,7 @@ namespace RecolecEco
         {
             float th = 0, st = 0;
             _braking = false;
+            Maneuvering = false;
             if (AutopilotActive)
             {
                 if (!IsDocked && !IsDocking && GameManager.I != null && !GameManager.I.Paused) { th = _apThrottle; st = _apSteer; }
@@ -67,6 +71,7 @@ namespace RecolecEco
                 if (kb != null)
                 {
                     _braking = kb.spaceKey.isPressed;
+                    Maneuvering = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
                     if (kb.wKey.isPressed || kb.upArrowKey.isPressed) th += 1;
                     if (kb.sKey.isPressed || kb.downArrowKey.isPressed) th -= 1;
                     if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) st += 1;
@@ -84,7 +89,10 @@ namespace RecolecEco
             float max = MaxSpeed;
             float accel = max / Mathf.Max(0.1f, _cfg.accelTime);
 
-            float target = Throttle > 0 ? Throttle * max : Throttle * max * _cfg.reverseFactor;
+            float forwardLimit = Maneuvering ? Mathf.Min(max, ManeuverSpeedLimit) : max;
+            float reverseMax = max * _cfg.reverseFactor;
+            float reverseLimit = Maneuvering ? Mathf.Min(reverseMax, ManeuverSpeedLimit) : reverseMax;
+            float target = Throttle > 0 ? Throttle * forwardLimit : Throttle * reverseLimit;
             float rate;
             if (_braking) rate = accel * 2.4f;
             else if (Mathf.Approximately(Throttle, 0)) rate = accel * 0.45f;              // el agua frena suavemente

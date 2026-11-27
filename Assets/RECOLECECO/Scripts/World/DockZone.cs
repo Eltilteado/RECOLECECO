@@ -27,6 +27,13 @@ namespace RecolecEco
 
             if (BoatInRange && !GM.ControlsLocked)
             {
+                bool collecting = GM.Collection != null && GM.Collection.IsCollecting;
+                if (collecting)
+                {
+                    InteractionPrompt.Set(this, "Espera a que vuelva la red", 2);
+                    return;
+                }
+
                 bool slowEnough = Mathf.Abs(boat.CurrentSpeed) <= ManualDockSpeedLimit;
                 InteractionPrompt.Set(this, slowEnough ? "E — Atracar en el muelle" : "Espacio — Frena para atracar", 2);
                 var keyboard = Keyboard.current;

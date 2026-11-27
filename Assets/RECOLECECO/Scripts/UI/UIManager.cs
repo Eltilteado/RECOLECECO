@@ -180,7 +180,7 @@ namespace RecolecEco
 
             // Indicador de interacción (abajo centro)
             var pp = UIFactory.Panel(hud, "Prompt", new Color(0.04f, 0.12f, 0.2f, 0.88f));
-            UIFactory.Place(pp.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(560, 70));
+            UIFactory.Place(pp.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 150), new Vector2(680, 70));
             _prompt = UIFactory.Label(pp.transform, "", 30, UIColors.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             UIFactory.Stretch(_prompt.rectTransform, 10, 0, 10, 0);
             var outline = pp.gameObject.AddComponent<Outline>();
@@ -235,7 +235,13 @@ namespace RecolecEco
             UIFactory.SetBar(_holdBar, used / (float)Mathf.Max(1, cap));
             _clean.text = $"Limpieza de la bahía: {GM.Environment.CleanPercent} %";
             UIFactory.SetBar(_cleanBar, GM.Environment.Cleanliness01);
-            _speed.text = $"{Mathf.Abs(GM.boat.CurrentSpeed):0.0} m/s · máx. {GM.MaxSpeed:0} m/s · red {GM.Reach:0} m";
+            float speed = GM.boat.CurrentSpeed;
+            string movement = $"máx. {GM.MaxSpeed:0} m/s";
+            if (GM.boat.IsDocking) movement = "Atracando";
+            else if (GM.boat.IsDocked) movement = "Atracada";
+            else if (speed <= -0.05f) movement = "Reversa";
+            else if (GM.boat.Maneuvering) movement = "Maniobra";
+            _speed.text = $"{Mathf.Abs(speed):0.0} m/s · {movement} · red {GM.Reach:0} m";
 
             string p = InteractionPrompt.Text;
             bool showPrompt = !string.IsNullOrEmpty(p) && !GM.ControlsLocked;
@@ -766,12 +772,15 @@ namespace RecolecEco
             UIFactory.Place(p.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900, 720));
             var ol = p.gameObject.AddComponent<Outline>(); ol.effectColor = UIColors.Teal; ol.effectDistance = new Vector2(3, 3);
             var t = UIFactory.Label(p.transform, "Controles", 46, UIColors.Text, TextAnchor.UpperCenter, FontStyle.Bold);
-            UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -28), new Vector2(800, 60));
+            UIFactory.Place(t.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -22), new Vector2(800, 60));
             string[,] rows =
             {
-                { "W / S", "Avanzar / frenar y retroceder" },
-                { "A / D", "Girar la chalana" },
-                { "Mouse (clic der.)", "Orientar la cámara · rueda: zoom" },
+                { "W / S o ↑ / ↓", "Avanzar y retroceder" },
+                { "A / D o ← / →", "Girar la chalana" },
+                { "Espacio", "Frenar la chalana" },
+                { "Shift (Mayús)", "Limitar la velocidad a 1,5 m/s" },
+                { "Clic der. / rueda", "Girar la cámara / ajustar el zoom" },
+                { "C", "Volver a la vista y al zoom iniciales" },
                 { "E", "Recoger residuo / atracar / continuar diálogo" },
                 { "I", "Abrir o cerrar la bodega (inventario)" },
                 { "Esc", "Pausa" },
@@ -779,11 +788,11 @@ namespace RecolecEco
             for (int i = 0; i < rows.GetLength(0); i++)
             {
                 var key = UIFactory.Panel(p.transform, "Tecla", UIColors.Teal, UIFactory.RoundedSmall);
-                UIFactory.Place(key.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, -110 - i * 72), new Vector2(260, 56));
+                UIFactory.Place(key.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, -89 - i * 50), new Vector2(260, 44));
                 var kt = UIFactory.Label(key.transform, rows[i, 0], 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                 UIFactory.Stretch(kt.rectTransform);
                 var dt = UIFactory.Label(p.transform, rows[i, 1], 26, UIColors.Text, TextAnchor.MiddleLeft);
-                UIFactory.Place(dt.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(345, -110 - i * 72), new Vector2(520, 56));
+                UIFactory.Place(dt.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(345, -89 - i * 50), new Vector2(520, 44));
             }
             var goal = UIFactory.Label(p.transform, "Objetivo: recoge residuos desde tu chalana, vuelve al muelle, recicla con Doña Rosa y mejora tu barco con Don Mateo. Sigue la flecha amarilla.", 22, UIColors.TextDim, TextAnchor.UpperCenter);
             UIFactory.Place(goal.rectTransform, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 120), new Vector2(800, 70));
