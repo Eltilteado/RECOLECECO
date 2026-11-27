@@ -99,7 +99,7 @@ namespace RecolecEco
                 if (mouse.rightButton.isPressed)
                 {
                     Vector2 d = mouse.delta.ReadValue();
-                    _orbitYaw += d.x * 0.18f;
+                    _orbitYaw = Mathf.DeltaAngle(0f, _orbitYaw + d.x * 0.18f);
                     _orbitPitch = Mathf.Clamp(_orbitPitch - d.y * 0.12f, -12f, 35f);
                     _lastOrbitInput = Time.unscaledTime;
                 }
@@ -109,8 +109,8 @@ namespace RecolecEco
             }
             distance = Mathf.SmoothDamp(distance, _zoomTarget, ref _zoomVelocity, 0.16f, Mathf.Infinity, dt);
 
-            // Vuelve detrás del barco si no se usa el mouse.
-            if (Time.unscaledTime - _lastOrbitInput > 1.5f)
+            // Mantiene el encuadre manual mientras haya un panel abierto.
+            if (canControlCamera && Time.unscaledTime - _lastOrbitInput > 1.5f)
             {
                 _orbitYaw = Mathf.LerpAngle(_orbitYaw, 0, dt * 1.5f);
                 _orbitPitch = Mathf.Lerp(_orbitPitch, 0, dt * 1.5f);
