@@ -234,7 +234,13 @@ namespace RecolecEco
             UIFactory.SetBar(_holdBar, used / (float)Mathf.Max(1, cap));
             _clean.text = $"Limpieza de la bahía: {GM.Environment.CleanPercent} %";
             UIFactory.SetBar(_cleanBar, GM.Environment.Cleanliness01);
-            _speed.text = $"{Mathf.Abs(GM.boat.CurrentSpeed):0.0} m/s · máx. {GM.MaxSpeed:0} m/s · red {GM.Reach:0} m";
+            float speed = GM.boat.CurrentSpeed;
+            string movement = $"máx. {GM.MaxSpeed:0} m/s";
+            if (GM.boat.IsDocking) movement = "Atracando";
+            else if (GM.boat.IsDocked) movement = "Atracada";
+            else if (speed <= -0.05f) movement = "Reversa";
+            else if (GM.boat.Maneuvering) movement = "Maniobra";
+            _speed.text = $"{Mathf.Abs(speed):0.0} m/s · {movement} · red {GM.Reach:0} m";
 
             string p = InteractionPrompt.Text;
             bool showPrompt = !string.IsNullOrEmpty(p) && !GM.ControlsLocked;
