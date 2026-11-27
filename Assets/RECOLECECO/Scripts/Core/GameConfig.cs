@@ -135,7 +135,7 @@ namespace RecolecEco
                 new WasteInfo { type = WasteType.Red, displayName = "Red de pesca", correctBin = BinType.RedesTextiles, value = 12, recyclable = true, iconColor = Hex("#3FA07A"),
                     tip = "Las redes abandonadas atrapan tortugas, aves y lobos marinos. Recicladas se convierten en hilo, alfombras o tablas." },
                 new WasteInfo { type = WasteType.CajaCarton, displayName = "Caja de cartón o madera", correctBin = BinType.OtrosReciclables, value = 6, recyclable = true, iconColor = Hex("#C9955A"),
-                    tip = "El cartón y la madera limpios se aprovechan para hacer papel, compost o tableros." },
+                    tip = "Va al contenedor «Otros reciclables»: el cartón y la madera limpios se aprovechan para hacer papel, compost o tableros." },
                 new WasteInfo { type = WasteType.CajaTecnopor, displayName = "Caja de tecnopor", correctBin = BinType.Disposicion, value = 2, recyclable = false, iconColor = Hex("#F2F2EE"),
                     tip = "El tecnopor (poliestireno) que viene del mar no se puede reciclar aquí: va a disposición adecuada para que no vuelva al agua. ¡Mejor usar envases reutilizables!" },
             };
