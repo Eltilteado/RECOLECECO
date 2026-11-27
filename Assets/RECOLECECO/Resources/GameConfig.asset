@@ -54,7 +54,7 @@ MonoBehaviour:
     value: 6
     recyclable: 1
     iconColor: {r: 0.7882353, g: 0.58431375, b: 0.3529412, a: 1}
-    tip: "El cart\xF3n y la madera limpios se aprovechan para hacer papel, compost
+    tip: "Va al contenedor \xABOtros reciclables\xBB: el cart\xF3n y la madera limpios se aprovechan para hacer papel, compost
       o tableros."
   - type: 4
     displayName: Caja de tecnopor
