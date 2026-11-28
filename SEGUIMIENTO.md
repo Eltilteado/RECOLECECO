@@ -27,4 +27,4 @@ entrada correspondiente.
 
 | Fecha | Cambio o prueba | Resultado | Evidencia |
 | --- | --- | --- | --- |
-| | | | |
+| 27/11/2026 | Integrante 02: modelos Kenney del muelle y rompeolas, fichas de las 11 tareas y guía de agua y cielo | Fichas preparadas; pruebas en Unity pendientes | [Evidencias/integrante-02](Evidencias/integrante-02/README.md) |
